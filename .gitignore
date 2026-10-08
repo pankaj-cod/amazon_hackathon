@@ -40,3 +40,4 @@ infrastructure/supabase/.temp/
 
 # API analysis cache
 apps/api/.cache/
+*.tsbuildinfo
