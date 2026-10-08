@@ -1,39 +1,29 @@
+import logging
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
-from dotenv import load_dotenv
 
-# Load the API environment file explicitly.
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-ENV_PATH = os.path.join(BASE_DIR, ".env")
-load_dotenv(ENV_PATH)
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+logging.basicConfig(level=logging.INFO)
 
-from app.routers.projects import router as projects_router
-from app.routers.polygons import router as polygons_router
-from app.routers.analysis import router as analysis_router
-from app.routers.compute import router as compute_router
-from app.routers.gee_status import router as gee_router
-from app.routers.ml_status import router as ml_router
+from app.routers.compute import router as compute_router  # noqa: E402
 
-app = FastAPI(title="Carbon Offset Land Analyzer API", version="0.1.0")
+app = FastAPI(title="Parali Mitra API", version="1.0.0")
 
-origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in origins],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=origins,
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
-# Routers
-app.include_router(projects_router)
-app.include_router(polygons_router)
-app.include_router(analysis_router)
+
 app.include_router(compute_router)
-app.include_router(gee_router)
-app.include_router(ml_router)

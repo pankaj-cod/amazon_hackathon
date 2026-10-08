@@ -37,3 +37,6 @@ Thumbs.db
 
 # Supabase local state
 infrastructure/supabase/.temp/
+
+# API analysis cache
+apps/api/.cache/
