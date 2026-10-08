@@ -35,8 +35,6 @@ type Dict = {
   fieldYear: string;
   howEstimated: string;
   advice: string;
-  listen: string;
-  stop: string;
   checkAnother: string;
   error: string;
   estimateNote: string;
@@ -44,6 +42,7 @@ type Dict = {
   acres: string;
   lowConfidence: string;
   aiAdvice: string;
+  months: string[];
 };
 
 export const T: Record<Lang, Dict> = {
@@ -73,18 +72,16 @@ export const T: Record<Lang, Dict> = {
     loadingNote: "ਪਹਿਲੀ ਵਾਰ 1 ਮਿੰਟ ਤੱਕ ਲੱਗ ਸਕਦਾ ਹੈ",
     burnHistory: "ਪਰਾਲੀ ਸਾੜਨ ਦਾ ਇਤਿਹਾਸ",
     status: { burned: "ਸਾੜੀ", partly_burned: "ਕੁਝ ਹਿੱਸਾ", not_burned: "ਨਹੀਂ ਸਾੜੀ", no_harvest: "ਫ਼ਸਲ ਖੜ੍ਹੀ", no_data: "ਪਤਾ ਨਹੀਂ" },
-    fertPerBurn: "ਹਰ ਵਾਰ ਸਾੜਨ 'ਤੇ ਸੜੀ ਖਾਦ",
+    fertPerBurn: "ਹਰ ਵਾਰ ਸਾੜਨ 'ਤੇ ਸੜੀ ਖਾਦ (ਤੁਹਾਡਾ ਖੇਤ)",
     fertTotal: (n) => `${n} ਵਾਰ ਸਾੜਨ ਨਾਲ ਕੁੱਲ ਨੁਕਸਾਨ`,
-    soilCarbon: "ਮਿੱਟੀ ਦਾ ਕਾਰਬਨ ਗੁਆਇਆ",
+    soilCarbon: "ਮਿੱਟੀ ਦਾ ਕਾਰਬਨ ਗੁਆਇਆ (ਤੁਹਾਡਾ ਖੇਤ)",
     soilShare: (a, b) => `ਤੁਹਾਡੀ ਮਿੱਟੀ ਦੇ ਕਾਰਬਨ ਦਾ ${a}–${b}%`,
-    smoke: "ਹਰ ਵਾਰ ਹਵਾ ਵਿੱਚ ਧੂੰਆਂ (PM2.5)",
+    smoke: "ਹਰ ਵਾਰ ਹਵਾ ਵਿੱਚ ਧੂੰਆਂ PM2.5 (ਤੁਹਾਡਾ ਖੇਤ)",
     credits: "ਨਾ ਸਾੜਨ 'ਤੇ ਕਾਰਬਨ ਕ੍ਰੈਡਿਟ ਕਮਾਈ",
     perAcreYear: "ਪ੍ਰਤੀ ਏਕੜ / ਸਾਲ",
     fieldYear: "ਤੁਹਾਡਾ ਖੇਤ / ਸਾਲ",
     howEstimated: "ਇਹ ਅੰਦਾਜ਼ਾ ਕਿਵੇਂ ਲਗਾਇਆ",
     advice: "ਤੁਸੀਂ ਕੀ ਕਰ ਸਕਦੇ ਹੋ",
-    listen: "ਸੁਣੋ",
-    stop: "ਰੋਕੋ",
     checkAnother: "ਹੋਰ ਖੇਤ ਜਾਂਚੋ",
     error: "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
     estimateNote: "ਇਹ ਸੈਟੇਲਾਈਟ ਅਧਾਰਿਤ ਅੰਦਾਜ਼ੇ ਹਨ, ਪੱਕੇ ਅੰਕੜੇ ਨਹੀਂ।",
@@ -92,6 +89,7 @@ export const T: Record<Lang, Dict> = {
     acres: "ਏਕੜ",
     lowConfidence: "ਘੱਟ ਸਾਫ਼ ਤਸਵੀਰਾਂ",
     aiAdvice: "Amazon Bedrock AI ਦੀ ਸਲਾਹ",
+    months: ["ਜਨ", "ਫ਼ਰ", "ਮਾਰ", "ਅਪ੍ਰੈ", "ਮਈ", "ਜੂਨ", "ਜੁਲਾ", "ਅਗ", "ਸਤੰ", "ਅਕਤੂ", "ਨਵੰ", "ਦਸੰ"],
   },
   hi: {
     appName: "पराली मित्र",
@@ -119,18 +117,16 @@ export const T: Record<Lang, Dict> = {
     loadingNote: "पहली बार 1 मिनट तक लग सकता है",
     burnHistory: "पराली जलाने का इतिहास",
     status: { burned: "जलाई", partly_burned: "आंशिक", not_burned: "नहीं जलाई", no_harvest: "फ़सल खड़ी", no_data: "पता नहीं" },
-    fertPerBurn: "हर बार जलाने पर जली खाद",
+    fertPerBurn: "हर बार जलाने पर जली खाद (आपका खेत)",
     fertTotal: (n) => `${n} बार जलाने से कुल नुकसान`,
-    soilCarbon: "मिट्टी का कार्बन खोया",
+    soilCarbon: "मिट्टी का कार्बन खोया (आपका खेत)",
     soilShare: (a, b) => `आपकी मिट्टी के कार्बन का ${a}–${b}%`,
-    smoke: "हर बार हवा में धुआँ (PM2.5)",
+    smoke: "हर बार हवा में धुआँ PM2.5 (आपका खेत)",
     credits: "न जलाने पर कार्बन क्रेडिट कमाई",
     perAcreYear: "प्रति एकड़ / साल",
     fieldYear: "आपका खेत / साल",
     howEstimated: "यह अनुमान कैसे लगाया",
     advice: "आप क्या कर सकते हैं",
-    listen: "सुनें",
-    stop: "रोकें",
     checkAnother: "दूसरा खेत जाँचें",
     error: "कुछ गड़बड़ हुई। फिर से कोशिश करें।",
     estimateNote: "ये सैटेलाइट पर आधारित अनुमान हैं, पक्के आँकड़े नहीं।",
@@ -138,6 +134,7 @@ export const T: Record<Lang, Dict> = {
     acres: "एकड़",
     lowConfidence: "कम साफ़ तस्वीरें",
     aiAdvice: "Amazon Bedrock AI की सलाह",
+    months: ["जन", "फ़र", "मार्च", "अप्रै", "मई", "जून", "जुला", "अग", "सितं", "अक्टू", "नवं", "दिसं"],
   },
   en: {
     appName: "Parali Mitra",
@@ -165,18 +162,16 @@ export const T: Record<Lang, Dict> = {
     loadingNote: "The first check can take up to a minute",
     burnHistory: "Burn history",
     status: { burned: "Burned", partly_burned: "Partly", not_burned: "Not burned", no_harvest: "Crop standing", no_data: "Unclear" },
-    fertPerBurn: "Fertiliser burned each time",
+    fertPerBurn: "Fertiliser burned each time (your field)",
     fertTotal: (n) => `Total lost over ${n} burns`,
-    soilCarbon: "Soil carbon lost",
+    soilCarbon: "Soil carbon lost (your field)",
     soilShare: (a, b) => `${a}–${b}% of your soil's carbon`,
-    smoke: "Smoke (PM2.5) released each burn",
+    smoke: "Smoke (PM2.5) per burn (your field)",
     credits: "Carbon-credit income if you stop burning",
     perAcreYear: "per acre / year",
     fieldYear: "your field / year",
     howEstimated: "How this is estimated",
     advice: "What you can do",
-    listen: "Listen",
-    stop: "Stop",
     checkAnother: "Check another field",
     error: "Something went wrong. Please try again.",
     estimateNote: "These are satellite-based estimates, not exact figures.",
@@ -184,6 +179,7 @@ export const T: Record<Lang, Dict> = {
     acres: "acres",
     lowConfidence: "few clear images",
     aiAdvice: "Advice by Amazon Bedrock AI",
+    months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
   },
 };
 

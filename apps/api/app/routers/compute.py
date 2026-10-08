@@ -1,10 +1,9 @@
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException
 
-from app.schemas import ComputeDirectIn, VoiceIn
-from app.services.stubble import voice
+from app.schemas import ComputeDirectIn
 from app.services.stubble.service import FieldInputError, analyze_field
 
 log = logging.getLogger(__name__)
@@ -30,14 +29,3 @@ def compute_direct(payload: ComputeDirectIn) -> Any:
         log.exception("Field analysis failed")
         raise HTTPException(status_code=502, detail="Satellite data service unavailable, please try again")
 
-
-@router.post("/advice/voice", response_class=Response)
-def advice_voice(payload: VoiceIn) -> Response:
-    if not voice.supported(payload.language):
-        raise HTTPException(status_code=400, detail="Voice is available in Hindi and English only")
-    try:
-        audio = voice.synthesize(payload.text, payload.language)
-    except Exception:
-        log.exception("Polly synthesis failed")
-        raise HTTPException(status_code=503, detail="Voice service unavailable")
-    return Response(content=audio, media_type="audio/mpeg")

@@ -45,14 +45,16 @@ export default function FieldMap({
   flyTarget: { center: LatLng; zoom: number; key: number } | null;
 }) {
   return (
-    <MapContainer center={PUNJAB_CENTER} zoom={8} className="h-full w-full" zoomControl={false} attributionControl>
+    <MapContainer center={PUNJAB_CENTER} zoom={8} maxZoom={19} className="h-full w-full" zoomControl={false} attributionControl>
       <TileLayer
         url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         attribution="Imagery &copy; Esri, Maxar, Earthstar Geographics"
+        maxNativeZoom={17}
         maxZoom={19}
       />
       <TileLayer
         url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+        maxNativeZoom={17}
         maxZoom={19}
       />
       <ClickHandler mode={mode} onPin={onPin} onVertex={onVertex} />

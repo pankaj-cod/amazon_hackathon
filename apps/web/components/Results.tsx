@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import {
-  CloudOff, Coins, Flame, HelpCircle, Leaf, Mountain, Sparkles, Sprout, Volume2, Square, Wind, Wheat,
+  CloudOff, Coins, Flame, HelpCircle, Leaf, Mountain, Sparkles, Sprout, Wind, Wheat,
 } from "lucide-react";
-import { fetchVoice, type FieldReport, type Season } from "@/lib/api";
+import type { FieldReport, Season } from "@/lib/api";
 import { T, inrRange, type Lang } from "@/lib/i18n";
 
 const STATUS_STYLE: Record<Season["status"], { cls: string; Icon: typeof Flame }> = {
@@ -36,77 +35,14 @@ function Stat({ icon: Icon, label, value, sub }: { icon: typeof Flame; label: st
 }
 
 function shortDate(iso: string, lang: Lang): string {
-  const locale = lang === "en" ? "en-IN" : `${lang}-IN`;
-  return new Date(iso + "T00:00:00").toLocaleDateString(locale, { day: "numeric", month: "short" });
-}
-
-function useSpeech(text: string, lang: Lang) {
-  const [state, setState] = useState<"idle" | "loading" | "playing">("idle");
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const browserVoice = () =>
-    typeof window !== "undefined" && "speechSynthesis" in window
-      ? window.speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(lang))
-      : undefined;
-
-  const [available, setAvailable] = useState(lang !== "pa");
-  useEffect(() => {
-    if (lang !== "pa" || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const update = () => setAvailable(Boolean(browserVoice()));
-    update();
-    window.speechSynthesis.addEventListener("voiceschanged", update);
-    return () => window.speechSynthesis.removeEventListener("voiceschanged", update);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
-
-  useEffect(() => () => stop(), []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function speakInBrowser(): boolean {
-    const v = browserVoice();
-    if (!v) return false;
-    const u = new SpeechSynthesisUtterance(text);
-    u.voice = v;
-    u.lang = v.lang;
-    u.onend = () => setState("idle");
-    window.speechSynthesis.speak(u);
-    setState("playing");
-    return true;
-  }
-
-  async function play() {
-    if (lang === "pa") {
-      speakInBrowser();
-      return;
-    }
-    setState("loading");
-    try {
-      const blob = await fetchVoice(text, lang);
-      const audio = new Audio(URL.createObjectURL(blob));
-      audioRef.current = audio;
-      audio.onended = () => setState("idle");
-      await audio.play();
-      setState("playing");
-    } catch {
-      if (!speakInBrowser()) setState("idle");
-    }
-  }
-
-  function stop() {
-    audioRef.current?.pause();
-    audioRef.current = null;
-    if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-    setState("idle");
-  }
-
-  return { state, available, play, stop };
+  const [, month, day] = iso.split("-").map(Number);
+  return `${day} ${T[lang].months[month - 1]}`;
 }
 
 export default function Results({ report, lang, onReset }: { report: FieldReport; lang: Lang; onReset: () => void }) {
   const t = T[lang];
   const { summary, burn_history, impact, soil, carbon_credits, advice, field } = report;
   const burned = summary.seasons_burned > 0;
-  const speechText = [advice.headline, ...advice.steps, advice.money_note].join(" ");
-  const speech = useSpeech(speechText, lang);
 
   return (
     <div className="space-y-3 pb-8">
@@ -182,20 +118,7 @@ export default function Results({ report, lang, onReset }: { report: FieldReport
       </div>
 
       <Card>
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <h3 className="font-semibold">{t.advice}</h3>
-          {speech.available && (
-            <button
-              type="button"
-              onClick={speech.state === "idle" ? speech.play : speech.stop}
-              disabled={speech.state === "loading"}
-              className="flex min-h-11 items-center gap-2 rounded-full bg-[var(--accent)] px-4 text-sm font-semibold text-white disabled:opacity-60"
-            >
-              {speech.state === "playing" ? <Square size={16} aria-hidden /> : <Volume2 size={16} aria-hidden />}
-              {speech.state === "playing" ? t.stop : t.listen}
-            </button>
-          )}
-        </div>
+        <h3 className="mb-2 font-semibold">{t.advice}</h3>
         <ol className="space-y-2">
           {advice.steps.map((s, i) => (
             <li key={i} className="flex gap-3">

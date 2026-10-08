@@ -11,7 +11,3 @@ class ComputeDirectIn(BaseModel):
     language: Language = "pa"
     years: Optional[list[int]] = Field(default=None, description="Kharif seasons to check; defaults to the last 7")
 
-
-class VoiceIn(BaseModel):
-    text: str = Field(min_length=1, max_length=2900)
-    language: Language

@@ -8,8 +8,7 @@ boundary, and in about a minute you get:
   organic carbon you gave up, and the PM2.5 smoke released.
 - **Carbon-credit income** you could earn by stopping, shown as a ₹ range per acre with every
   assumption listed.
-- **Advice in Punjabi, Hindi or English**, written by Claude on Amazon Bedrock and read aloud by
-  Amazon Polly.
+- **Advice in Punjabi, Hindi or English**, written by Claude on Amazon Bedrock.
 
 Built for the AWS student hackathon (Air track). It extends our earlier
 [Carbon-Offset-Analyser](https://github.com/pankaj-cod/Carbon-Offset-Analyser): the first commit
@@ -23,10 +22,10 @@ phone browser ──► Next.js static site (AWS Amplify)
                      ▼
               AWS Lambda (FastAPI container, us-west-2) ── S3 cache
                      │
-     ┌───────────────┼──────────────────────┬────────────────────┐
-     ▼               ▼                      ▼                    ▼
-Sentinel-2 L2A   ISRIC SoilGrids     Amazon Bedrock         Amazon Polly
-(AWS Open Data)  (soil carbon)       (Claude: advice)       (Hindi voice)
+     ┌───────────────┼──────────────────────┐
+     ▼               ▼                      ▼
+Sentinel-2 L2A   ISRIC SoilGrids     Amazon Bedrock
+(AWS Open Data)  (soil carbon)       (Claude: advice)
 ```
 
 1. **Burn detection** (`apps/api/app/services/stubble/burn.py`): for each October–November we read
@@ -56,7 +55,6 @@ Sentinel-2 L2A   ISRIC SoilGrids     Amazon Bedrock         Amazon Polly
 | **AWS Lambda + Function URL** | API (container image, arm64, in us-west-2 next to the data) |
 | **Amazon S3** | Cache of per-field analyses |
 | **Amazon Bedrock** | Claude writes the advice in Punjabi, Hindi or English from the computed facts |
-| **Amazon Polly** | Neural Hindi and Indian-English voice (*Kajal*) for low-literacy users |
 | **AWS Amplify Hosting** | Static Next.js site |
 
 ## Run locally
@@ -122,8 +120,8 @@ CLI and Docker.
 ## Repository layout
 
 ```
-apps/api/app/services/stubble/   burn detection, satellite I/O, soil, economics, advice, voice
-apps/api/app/routers/compute.py  POST /compute/direct, POST /advice/voice
+apps/api/app/services/stubble/   burn detection, satellite I/O, soil, economics, advice
+apps/api/app/routers/compute.py  POST /compute/direct
 apps/web/                        Next.js mobile app (static export)
 infrastructure/aws/template.yaml SAM template (Lambda, Function URL, S3, IAM)
 apps/api/scripts, apps/api/ml    legacy Carbon-Offset-Analyser tools (unchanged; requirements-ml.txt)

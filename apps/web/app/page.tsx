@@ -50,14 +50,20 @@ export default function Home() {
   const [report, setReport] = useState<FieldReport | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const t = T[lang];
 
-  useEffect(() => setLang(loadLang()), []);
+  const [langLoaded, setLangLoaded] = useState(false);
+  useEffect(() => {
+    setLang(loadLang());
+    setLangLoaded(true);
+  }, []);
   useEffect(() => {
     document.documentElement.lang = lang;
+    if (!langLoaded) return;
     try { localStorage.setItem("lang", lang); } catch {}
-  }, [lang]);
+  }, [lang, langLoaded]);
 
   useEffect(() => {
     if (phase !== "loading") return;
@@ -95,21 +101,40 @@ export default function Home() {
     );
   }
 
-  async function run(geom: FieldGeometry, areaAcres?: number) {
+  async function run(geom: FieldGeometry, areaAcres?: number, language: Lang = lang) {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     setMessage(null);
     setPhase("loading");
     try {
-      const r = await analyzeField(geom, lang, areaAcres, ctrl.signal);
+      const r = await analyzeField(geom, language, areaAcres, ctrl.signal);
       setReport(r);
       setPhase("result");
       window.scrollTo({ top: 0 });
     } catch (e) {
       if (ctrl.signal.aborted) return;
-      setMessage(e instanceof Error && e.message ? `${t.error} (${e.message})` : t.error);
+      setMessage(e instanceof Error && e.message ? `${T[language].error} (${e.message})` : T[language].error);
       setPhase("pick");
+    }
+  }
+
+  async function translateReport(l: Lang) {
+    if (!report) return;
+    const geom: FieldGeometry | null = report.field.input_type === "pin"
+      ? { type: "Point", coordinates: report.field.centroid }
+      : geometry;
+    if (!geom) return;
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    setRefreshing(true);
+    try {
+      setReport(await analyzeField(geom, l, report.field.area_acres, ctrl.signal));
+    } catch {
+      // keep the current report; labels already switched language
+    } finally {
+      if (!ctrl.signal.aborted) setRefreshing(false);
     }
   }
 
@@ -132,12 +157,7 @@ export default function Home() {
 
   function changeLang(l: Lang) {
     setLang(l);
-    if (phase === "result" && report) {
-      const sameField = report.field.input_type === "pin"
-        ? { type: "Point" as const, coordinates: report.field.centroid }
-        : geometry;
-      if (sameField) run(sameField, report.field.area_acres);
-    }
+    if (phase === "result") translateReport(l);
   }
 
   return (
@@ -166,7 +186,9 @@ export default function Home() {
       </header>
 
       {phase === "result" && report ? (
-        <Results report={report} lang={lang} onReset={() => { setPhase("pick"); setReport(null); }} />
+        <div aria-busy={refreshing} className={clsx("transition-opacity", refreshing && "pointer-events-none opacity-50")}>
+          <Results key={report.advice.language} report={report} lang={lang} onReset={() => { setPhase("pick"); setReport(null); }} />
+        </div>
       ) : (
         <main className="flex flex-1 flex-col gap-3 pb-6">
           <div className="flex rounded-2xl bg-[var(--surface)] p-1 ring-1 ring-[var(--line)]">
@@ -188,7 +210,7 @@ export default function Home() {
 
           <p className="text-center font-medium">{mode === "pin" ? t.pickField : t.boundaryHint}</p>
 
-          <div className="relative h-[52dvh] min-h-72 overflow-hidden rounded-2xl ring-1 ring-[var(--line)]">
+          <div className="relative h-[44dvh] min-h-64 overflow-hidden rounded-2xl ring-1 ring-[var(--line)]">
             <FieldMap
               mode={mode}
               pin={pin}
@@ -270,7 +292,7 @@ export default function Home() {
       )}
 
       <footer className="py-4 text-center text-xs text-[var(--muted)]">
-        Sentinel-2 · AWS Open Data · Amazon Bedrock · Amazon Polly
+        Sentinel-2 · AWS Open Data · Amazon Bedrock
       </footer>
     </div>
   );

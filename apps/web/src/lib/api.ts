@@ -85,13 +85,3 @@ export async function analyzeField(
   if (!res.ok) throw new Error(await errorDetail(res));
   return res.json();
 }
-
-export async function fetchVoice(text: string, language: Lang): Promise<Blob> {
-  const res = await fetch(`${BASE_URL}/advice/voice`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, language }),
-  });
-  if (!res.ok) throw new Error(await errorDetail(res));
-  return res.blob();
-}
