@@ -104,3 +104,44 @@ def test_polygon_area_used_for_field():
 def test_default_years_excludes_running_season():
     assert default_years(date(2026, 10, 8)) == list(range(2019, 2026))
     assert default_years(date(2026, 12, 2))[-1] == 2026
+
+
+class _FakeMessages:
+    def __init__(self, text):
+        self.text = text
+
+    def create(self, **kwargs):
+        from types import SimpleNamespace
+        assert kwargs["model"].startswith("anthropic.")
+        return SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text=self.text)])
+
+
+def _fake_bedrock(monkeypatch, text):
+    import anthropic
+
+    class Fake:
+        def __init__(self, **kwargs):
+            self.messages = _FakeMessages(text)
+
+    monkeypatch.setattr(anthropic, "AnthropicBedrockMantle", Fake)
+
+
+FACTS = {
+    "seasons_checked": 7, "seasons_burned": 1, "seasons_clear_enough": 7,
+    "nutrient_value_inr_per_acre_per_burn": {"low": 1412, "high": 3851},
+    "carbon_credit_inr_per_acre_per_year": {"low": 51, "high": 714},
+}
+
+
+def test_bedrock_json_reply_is_used(monkeypatch):
+    from app.services.stubble import advice
+    _fake_bedrock(monkeypatch, 'Here: {"headline": "H", "steps": ["a", "b", "c"], "money_note": "M"}')
+    out = advice.generate_advice(FACTS, "hi")
+    assert out["source"] == "bedrock" and out["steps"] == ["a", "b", "c"]
+
+
+def test_bad_bedrock_reply_falls_back_to_template(monkeypatch):
+    from app.services.stubble import advice
+    _fake_bedrock(monkeypatch, "not json")
+    out = advice.generate_advice(FACTS, "pa")
+    assert out["source"] == "template"

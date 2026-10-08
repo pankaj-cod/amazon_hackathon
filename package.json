@@ -1,7 +1,7 @@
 {
-  "name": "carbon-offset-analyser",
+  "name": "parali-mitra",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "workspaces": [
     "apps/web"
   ],
@@ -10,7 +10,6 @@
     "dev": "./scripts/dev.sh",
     "dev:web": "npm --workspace apps/web run dev",
     "build:web": "npm --workspace apps/web run build",
-    "test:api": "cd apps/api && .venv/bin/python -m unittest discover -s tests",
-    "verify:api": "apps/api/.venv/bin/python apps/api/scripts/verify_ml_integration.py"
+    "test:api": "cd apps/api && .venv/bin/python -m pytest tests/test_stubble.py -q"
   }
 }

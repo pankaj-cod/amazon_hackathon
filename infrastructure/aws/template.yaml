@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Parali Mitra API - stubble-burning analysis on AWS Lambda (deploy in us-west-2, next to the Sentinel-2 open data)
+
+Parameters:
+  AllowedOrigin:
+    Type: String
+    Default: "*"
+    Description: Web app origin allowed by CORS (e.g. https://main.xxxx.amplifyapp.com)
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-opus-5-5
+  AdviceMode:
+    Type: String
+    Default: bedrock
+    AllowedValues: [bedrock, template]
+
+Resources:
+  CacheBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-analyses
+            Status: Enabled
+            Prefix: analyses/
+            ExpirationInDays: 180
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      Architectures: [arm64]
+      MemorySize: 3008
+      Timeout: 120
+      Environment:
+        Variables:
+          CACHE_BUCKET: !Ref CacheBucket
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+          BEDROCK_REGION: !Ref AWS::Region
+          POLLY_REGION: !Ref AWS::Region
+          ADVICE_MODE: !Ref AdviceMode
+          # CORS is handled by the Function URL; FastAPI must not add a second header.
+          CORS_ORIGINS: ""
+      FunctionUrlConfig:
+        AuthType: NONE
+        Cors:
+          AllowOrigins: [!Ref AllowedOrigin]
+          AllowMethods: [GET, POST]
+          AllowHeaders: [content-type]
+          MaxAge: 3600
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref CacheBucket
+        - Statement:
+            - Effect: Allow
+              Action: bedrock-mantle:CreateInference
+              Resource: "*"
+            - Effect: Allow
+              Action: polly:SynthesizeSpeech
+              Resource: "*"
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ../../apps/api
+      DockerTag: python3.12-v1
+
+Outputs:
+  ApiUrl:
+    Description: Set this as NEXT_PUBLIC_BACKEND_URL for the web app
+    Value: !GetAtt ApiFunctionUrl.FunctionUrl
+  CacheBucketName:
+    Value: !Ref CacheBucket

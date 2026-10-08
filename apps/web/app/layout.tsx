@@ -1,32 +1,27 @@
-import '../styles/globals.css';
-import { ReactNode } from 'react';
-import NavBar from '@/components/NavBar';
+import "../styles/globals.css";
+import type { Metadata, Viewport } from "next";
+import { ReactNode } from "react";
+import { Noto_Sans, Noto_Sans_Devanagari, Noto_Sans_Gurmukhi } from "next/font/google";
 
-export const metadata = {
-  title: 'Offset Guesser - Carbon Offset Land Analyzer',
-  description: 'Analyze land, estimate carbon potential, and make climate projects real with AI-powered geospatial analysis',
+const latin = Noto_Sans({ subsets: ["latin"], weight: ["400", "600", "700", "800"], variable: "--font-latin" });
+const gurmukhi = Noto_Sans_Gurmukhi({ subsets: ["gurmukhi"], weight: ["400", "600", "700", "800"], variable: "--font-gurmukhi" });
+const devanagari = Noto_Sans_Devanagari({ subsets: ["devanagari"], weight: ["400", "600", "700", "800"], variable: "--font-devanagari" });
+
+export const metadata: Metadata = {
+  title: "Parali Mitra",
+  description: "Stubble-burning history, soil carbon loss and carbon-credit potential for Punjab and Haryana fields, with advice in Punjabi and Hindi.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#1c6b4f",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen text-[var(--ink)] antialiased">
-        <div className="min-h-screen flex flex-col app-shell">
-          <NavBar />
-          <main className="flex-1 relative z-10">
-            {children}
-          </main>
-          <footer className="mt-16 border-t-2 border-[var(--line)] bg-[var(--surface)] py-10 relative z-10">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="grid gap-2 text-center text-sm text-[var(--muted)]">
-                <p className="font-semibold tracking-wide text-[var(--ink)] uppercase">Offset Guesser</p>
-                <p>Earth Engine-based carbon intelligence for project screening and planning.</p>
-                <p className="text-xs">© 2026 Offset Guesser. Open/public-data-first carbon analysis.</p>
-              </div>
-            </div>
-          </footer>
-        </div>
-      </body>
+    <html lang="pa" className={`${latin.variable} ${gurmukhi.variable} ${devanagari.variable}`}>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }

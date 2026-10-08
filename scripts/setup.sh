@@ -40,7 +40,7 @@ command -v npm >/dev/null 2>&1 || {
 echo "Creating the API virtual environment..."
 "$PYTHON_BIN" -m venv "$API_DIR/.venv"
 "$API_DIR/.venv/bin/python" -m pip install --upgrade pip
-"$API_DIR/.venv/bin/python" -m pip install -r "$API_DIR/requirements.txt"
+"$API_DIR/.venv/bin/python" -m pip install -r "$API_DIR/requirements-dev.txt"
 
 echo "Installing web dependencies..."
 cd "$ROOT_DIR"
@@ -62,5 +62,5 @@ if [ ! -f "$WEB_DIR/.env.local" ]; then
 fi
 
 echo ""
-echo "Setup complete. Add credentials to the two environment files, then run:"
+echo "Setup complete. Optionally add AWS credentials to apps/api/.env (Bedrock advice, Polly voice), then run:"
 echo "  npm run dev"

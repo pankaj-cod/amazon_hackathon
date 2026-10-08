@@ -22,7 +22,9 @@ log = logging.getLogger(__name__)
 ANALYSIS_VERSION = "stubble-v1"
 SEASONS = 7
 MAX_FIELD_HA = 40.0
-CACHE_DIR = Path(os.getenv("CACHE_DIR", Path(__file__).resolve().parents[3] / ".cache"))
+API_ROOT = Path(__file__).resolve().parents[3]
+CACHE_DIR = Path(os.getenv("CACHE_DIR", API_ROOT / ".cache"))
+SEED_CACHE_DIR = Path(os.getenv("SEED_CACHE_DIR", API_ROOT / "demo_cache"))
 CACHE_BUCKET = os.getenv("CACHE_BUCKET", "")
 BURN_STATUSES = ("burned", "partly_burned")
 
@@ -70,9 +72,10 @@ def _cache_key(geometry: dict, years: list[int]) -> str:
 
 
 def _cache_get(key: str) -> dict | None:
-    path = CACHE_DIR / f"{key}.json"
-    if path.exists():
-        return json.loads(path.read_text())
+    for directory in (SEED_CACHE_DIR, CACHE_DIR):
+        path = directory / f"{key}.json"
+        if path.exists():
+            return json.loads(path.read_text())
     if CACHE_BUCKET:
         try:
             import boto3

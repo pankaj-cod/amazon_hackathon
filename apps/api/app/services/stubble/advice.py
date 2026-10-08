@@ -15,9 +15,9 @@ ADVICE_MODE = os.getenv("ADVICE_MODE", "bedrock")  # bedrock | template
 
 
 class Advice(BaseModel):
-    headline: str = Field(description="One sentence summarising what the satellite saw on this field.")
-    steps: list[str] = Field(description="3 to 5 practical steps, each under 25 words.")
-    money_note: str = Field(description="One or two sentences on money lost to burning and possible carbon-credit income, using only the given numbers.")
+    headline: str = Field(min_length=1)
+    steps: list[str]
+    money_note: str = Field(min_length=1)
 
 
 SYSTEM_PROMPT = """You are a crop-residue extension officer helping rice-wheat farmers in Punjab and Haryana stop burning paddy stubble.
@@ -29,7 +29,10 @@ Rules:
 - The only scheme you may mention is the Crop Residue Management (CRM) scheme: up to 50% subsidy on machines for individual farmers and up to 80% for cooperatives and Custom Hiring Centres.
 - If burning was detected, be direct but never accusatory. If the data was unclear, say so honestly.
 - Suggest in-field options first (Super SMS on the combine, Happy/Super/Smart Seeder sowing into residue, mulching and ploughing in with PUSA decomposer), then baling for biomass or biogas plants.
-- Carbon credits are a small bonus that needs an aggregator project; the bigger gain is fertiliser and soil health kept in the field."""
+- Carbon credits are a small bonus that needs an aggregator project; the bigger gain is fertiliser and soil health kept in the field.
+
+Reply with only a JSON object, no other text:
+{"headline": "<one sentence on what the satellite saw>", "steps": ["<3 to 5 steps, each under 25 words>"], "money_note": "<one or two sentences on money lost to burning and possible carbon-credit income>"}"""
 
 
 TEMPLATES = {
@@ -101,7 +104,9 @@ def _bedrock_advice(facts: dict, lang: str) -> dict:
     from anthropic import AnthropicBedrockMantle
 
     client = AnthropicBedrockMantle(aws_region=BEDROCK_REGION, timeout=30.0, max_retries=1)
-    response = client.messages.parse(
+    # Claude in Amazon Bedrock does not support structured outputs, so the JSON
+    # shape is requested in the prompt and validated here.
+    response = client.messages.create(
         model=BEDROCK_MODEL_ID,
         max_tokens=4000,
         output_config={"effort": "low"},
@@ -110,11 +115,13 @@ def _bedrock_advice(facts: dict, lang: str) -> dict:
             "role": "user",
             "content": f"Write the advice in {LANGUAGES[lang]}.\n\nField facts (JSON):\n{json.dumps(facts, ensure_ascii=False, indent=1)}",
         }],
-        output_format=Advice,
     )
-    if response.stop_reason != "end_turn" or response.parsed_output is None:
+    if response.stop_reason != "end_turn":
         raise RuntimeError(f"Bedrock advice incomplete: stop_reason={response.stop_reason}")
-    advice = response.parsed_output
+    text = next((b.text for b in response.content if b.type == "text"), "")
+    advice = Advice.model_validate_json(text[text.find("{"): text.rfind("}") + 1])
+    if not 3 <= len(advice.steps) <= 6:
+        raise ValueError(f"unexpected step count {len(advice.steps)}")
     return {
         "language": lang,
         "headline": advice.headline,
